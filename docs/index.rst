@@ -3,7 +3,8 @@ Flask-SeaSurf
 
 .. module:: flask_seasurf
 
-SeaSurf is a Flask extension for preventing cross-site request forgery (CSRF). 
+SeaSurf is a Flask extension for preventing `cross-site request forgery (CSRF)
+<https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)>`_.
 
 CSRF vulnerabilities have been found in large and popular sites such as 
 YouTube. These attacks are problematic because the mechanism they use is 
@@ -36,16 +37,24 @@ then passing your application object back to the extension, like this:
 .. code-block:: python
     
     import Flask
-    from flask.ext.seasurf import SeaSurf
+    from flask_seasurf import SeaSurf
     
     app = Flask(__name__)
     csrf = SeaSurf(app)
 
 This extension is configurable via a set of configuration variables which can
-be added to the Flask app's config file. The cookie name, cookie timeout, cookie
-HTTPOnly flag, cookie secure flag, and CSRF disable parameters may be set via
-`CSRF_COOKIE_NAME`, `CSRF_COOKIE_TIMEOUT`, `CSRF_COOKIE_HTTPONLY`,
-`CSRF_COOKIE_SECURE`, and `CSRF_DISABLE`, respectively.
+be added to the Flask app's config file:
+
+- `CSRF_COOKIE_NAME` for the cookie name
+- `CSRF_COOKIE_TIMEOUT` for the cookie timeout
+- `CSRF_COOKIE_HTTPONLY` for setting the cookie HTTPOnly flag
+- `CSRF_COOKIE_SECURE` for setting the cookie secure flag
+- `CSRF_COOKIE_PATH` for setting the cookie path
+- `CSRF_COOKIE_DOMAIN` for setting the cookie domain
+- `CSRF_DISABLE` to disable CSRF prevention
+
+Except for the last option, all values are passed verbatim to the `Response.set_cookie
+<http://flask.pocoo.org/docs/0.12/api/#flask.Response.set_cookie>`_ method.
 
 Corresponding code will need to be added to the templates where `POST`, `PUT`, 
 and `DELETE` HTTP methods are anticipated. In the case of `POST` requests
@@ -75,7 +84,7 @@ exempt decorator. For instance it's possible to decorate a view as shown below:
         '''This view is exempted from CSRF validation.'''
         return 'foobar'
 
-By default when a request is determinded to be secure, i.e. using HTTPS, then
+By default when a request is determined to be secure, i.e. using HTTPS, then
 we use strict referer checking to prevent a man-in-the-middle attack from being
 plausible. To disable checking the Referer header, set the Flask app's config
 `CSRF_CHECK_REFERER` to `False`.
@@ -108,7 +117,7 @@ like so:
 
 .. code-block:: python
 
-    from flask.ext.wtf import Form, HiddenField
+    from flask_wtf import Form, HiddenField
     from flask import g
 
     # import your app here
@@ -128,7 +137,7 @@ Now assume we define a module `forms` as such:
 
 .. code-block:: python
 
-    from flask.ext.wtf import DataRequired, TextField, PasswordField, Email
+    from flask_wtf import DataRequired, TextField, PasswordField, Email
     from seasurf_form import SeaSurfForm
 
 

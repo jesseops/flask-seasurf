@@ -295,13 +295,9 @@ class SeaSurf(object):
         '''
         Checks if the `flask._app_ctx_object` object contains the CSRF token,
         and if the view in question has CSRF protection enabled. If both,
-        goes on to check if a cookie needs to be set by verifying the cookie
-        presented by the request matches the CSRF token and the user has not
-        requested a token in a Jinja template.
-
-        If the token does not match or the user has requested a token,returns
-        the response with a cookie containing the token. Otherwise we return
-        the response unaltered. Bound to the Flask `after_request` decorator.
+        returns the response with a cookie containing the token. If not then we
+        just return the response unaltered. Bound to the Flask `after_request`
+        decorator.
 
         :param response: A Flask Response object.
         '''
@@ -318,6 +314,19 @@ class SeaSurf(object):
         if csrf_cookie_matches and not getattr(_app_ctx_stack.top, 'csrf_token_requested', False):
             return response
 
+        if self._disable_cookie and self._disable_cookie(response):
+            return response
+
+        self._set_csrf_cookie(response)
+        return response
+
+    def _set_csrf_cookie(self, response):
+        '''
+        Adds a csrf token cookie to the given response.
+
+        :param response: A Flask Response object.
+        '''
+
         csrf_token = getattr(_app_ctx_stack.top, self._csrf_name)
         if session.get(self._csrf_name) != csrf_token:
             session[self._csrf_name] = csrf_token
@@ -333,15 +342,7 @@ class SeaSurf(object):
     def _get_token(self):
         '''
         Attempts to get a token from the request cookies.
-
-        This is passed to the Jinja env globals as 'csrf_token'.
         '''
-        # The Django behavior is to flag any call to `get_token` so that the middleware
-        # will only pass the Set-Cookie header when a request needs a token generated
-        # generated or has requested one in it's template.
-        # See https://github.com/django/django/blob/86de930f/django/middleware/csrf.py#L74
-        _app_ctx_stack.top.csrf_token_requested = True
-
         token = getattr(_app_ctx_stack.top, self._csrf_name, None)
         if PY3 and isinstance(token, bytes):
             return token.decode('utf8')
